@@ -4,7 +4,7 @@
 {% block title %} Mahalliy xabarlar {% endblock title %}
 
 {% block content %}
-    {% for news in mahalliy_yangiliklari %}
+    {% for news in mahalliy_yangiliklar %}
         <div class="container">
             <div class="row">
                 <a href="{{ news.get_absolute_url }}">
