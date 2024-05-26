@@ -1,10 +1,14 @@
 from django.shortcuts import render, get_object_or_404,HttpResponse
+from hitcount.utils import get_hitcount_model
+from hitcount.views import HitCountDetailView, HitCountMixin
 
-from .forms import ContactForm
-from .models import News, Category, Contact
+from news_app.forms import ContactForm, CommentForm
+from news_app.models import News, Category, Contact
+from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, TemplateView,UpdateView,DeleteView,CreateView
 
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from news_project.custom_permissions import OnlyLoggedSuperUser
 # Create your views here.
 
 # def news_list(request):
@@ -15,13 +19,67 @@ from django.views.generic import ListView, DetailView, TemplateView,UpdateView,D
 #     }
 #
 #     return render(request, "news/news_list.html",context)
-def news_detail(reqeust,news):
-    news = News.objects.get(slug=news,status=News.Status.Published)
-    context = {
-        'news':news
-    }
-    return render(reqeust, 'news/news_detail.html',context)
 
+def news_detail(request,news):
+    news = News.objects.get(slug=news,status=News.Status.Published)
+    context = {}
+    # hitcount logic
+    hit_count = get_hitcount_model().objects.get_for_object(news)
+    hits = hit_count.hits
+    hitcontext=context['hitcount'] = {'pk': hit_count.pk}
+    hit_count_response= HitCountMixin.hit_count(request, hit_count)
+    if hit_count_response.hit_counted:
+        hits = hits + 1
+        hitcontext['hit_counted'] = hit_count_response.hit_counted
+        hitcontext['hit_message'] = hit_count_response.hit_message
+        hitcontext['total_hits'] = hits
+
+
+    comments = news.comments.filter(active=True)
+    comment_count = comments.count()
+    new_comment = None
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+        if comment_form.is_valid():
+            # yangi comment objectni yaratamiz lekin db ga saqlamaymiz
+            news_comment = comment_form.save(commit=False)
+            news_comment.news = news
+            # comment izoh egasini so'rov yuborayotgan userga bog'ladik
+            news_comment.user = request.user
+            # ma'lumotlar bazasiga saqlaymiz
+            news_comment.save()
+            comment_form = CommentForm()
+    else:
+        comment_form = CommentForm()
+    context = {
+        'news':news,
+        'comments':comments,
+        'new_comment':new_comment,
+        'comment_form':comment_form,
+        'comment_count':comment_count
+    }
+    return render(request, 'news/news_detail.html',context)
+
+# # Clas ga o'tirish kerak bo'lgan qism
+
+# class NewsDetailView(DetailView):
+#
+#     def __init__(self,news):
+#         super().__init__(news)
+#     ef get
+#     def get(self):
+#         comment_form = CommentForm()
+#     def post(self):
+#         comment_form = CommentForm()
+#         if comment_form.is_valid():
+#             # yangi comment objectni yaratamiz lekin db ga saqlamaymiz
+#             news_comment = comment_form.save(commit=False)
+#             news_comment.news = news
+#             # comment izoh egasini so'rov yuborayotgan userga bog'ladik
+#             news_comment.user = user
+#             # ma'lumotlar bazasiga saqlaymiz
+#             news_comment.save()
+#             comment_form = CommentForm()
 class NewsListView(ListView):
     model = News
     template_name = 'news/news_list.html'
@@ -143,13 +201,18 @@ class SportNewsView(ListView):
         news = self.model.published.all().filter(category__name='Sport')
         return news
 
-class NewsUpdateView(UpdateView):
+class NewsUpdateView(OnlyLoggedSuperUser,UpdateView):
     model = News
     fields=('title','body','image','category','status')
-    template_name='crud/news_edit.html'
+    template_name='news/crud/news_edit.html'
 
-class NewsDeleteView(DeleteView):
+class NewsDeleteView(OnlyLoggedSuperUser,DeleteView):
     model = News
-    template_name = 'crud/news_delete.html'
+    template_name = 'news/crud/news_delete.html'
+    success_url = reverse_lazy('home_page')
 
-
+class NewsCreateView(OnlyLoggedSuperUser,CreateView):
+    model = News
+    template_name = 'news/crud/news_create.html'
+    fields = ('title','slug','body','image','category','status')
+    

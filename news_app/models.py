@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -32,7 +33,6 @@ class News(models.Model):
                               default=Status.Draft
                               )
 
-
     objects = models.Manager() # default manager
     published = PublishedManager()
     class Meta:
@@ -51,3 +51,19 @@ class Contact(models.Model):
     def __str__(self):
         return self.email
 
+class Comment(models.Model):
+    news = models.ForeignKey(News,
+                             on_delete=models.CASCADE,
+                             related_name='comments')
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='comments')
+    body = models.TextField()
+    created_time = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['created_time'] # agar biz -created_time desak eng oxirgi kiritilgan comment birinchi chiqib keladi
+
+    def __str__(self):
+        return f"Comment - {self.body} by {self.user}"

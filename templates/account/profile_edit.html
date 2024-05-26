@@ -1,0 +1,13 @@
+{% extends 'news/base.html' %}
+{% load static  %}
+{% block title  %} Foydalanuvchi ma'lumotlarni tahrirlash{% endblock title %}
+{% block content %}
+
+    <h1>Foydalanuvchi ma'lumotlarni tahrirlash</h1>
+    <p>Siz o'zingizni ma'lumotlarningizni tahrirlashingiz mumkin quyidagi forma orqali</p>
+    <form method="post" enctype="multipart/form-data">{% csrf_token %} {# enctype ni vazifasi forma orqali ma'lumotlarni yuklash vazifasni bajaradi u siz rasm va yoki file ni yuklashni iloji yoq #}
+        {{ user_form.as_p }}
+        {{ profile_form.as_p }}
+        <button type="submit">O'zgarishlarni saqlash</button>
+    </form>
+{% endblock content %}

@@ -1,0 +1,21 @@
+{% extends 'news/base.html' %}
+{% load static %}
+
+{% block title %}
+Qidiruv natijalari sahifasi
+{% endblock title %}
+
+{% block content %}
+
+    <h2>Qidiruv natijalari</h2>
+    {% for yangilik in barcha_yangiliklar %}
+                      <li>
+                           <figure class="bsbig_fig"> <a href="{{ yangilik.get_absolute_url }}" class="featured_img"> <img alt="" src="{{ yangilik.image.url }}"> <span class="overlay"></span> </a>
+                           <figcaption> <a href="{{ yangilik.get_absolute_url }}">{{ yangilik.title }}</a> </figcaption>
+                         <p>{{yangilik.body | truncatewords:10}} <i class="fa fa-eye"></i></p>
+
+                    </figure>
+         </li>
+    {% endfor %}
+
+{% endblock content %}

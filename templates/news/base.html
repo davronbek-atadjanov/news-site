@@ -34,9 +34,24 @@
               <li><a href="{% url 'home_page' %}">Home</a></li>
               <li><a href="#">About</a></li>
               <li><a href="{% url 'contact_page' %}">Contact</a></li>
+                {% if request.user.is_authenticated and request.user.is_superuser %}
+                <li><a href="{% url 'admin_page' %}">Admin Sahifasi</a></li>
+                {% endif %}
+
             </ul>
           </div>
           <div class="header_top_right">
+              {% if request.user.is_authenticated %}
+                  <p><form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                            <a href=""  onclick="this.parentNode.submit(); return false;" style="color:palegreen">Logout</a>
+                  </form></p>
+              <p><a href="{% url 'user_profile' %}" style="color:yellow">My Profile</a></p>
+
+              {% else %}
+              <p><a href="{% url 'login' %}" style="color:yellow">Login</a></p>
+              {% endif %}
+
             <p>{% now "jS F Y H:i" %}</p>
           </div>
         </div>
@@ -63,6 +78,11 @@
           <li><a href="{% url 'sport_news_page' %}">Sport</a></li>
           <li><a href="{% url 'contact_page' %}">Biz bilan aloqa</a></li>
 {#          <li><a href="{% url 'page_404' %}">404 Page</a></li>#}
+            <li>
+                  <form method="get" action="{% url 'search_results' %}">
+                      <input type="search" name="q" placeholder="Qidiruv.." class="form-control">
+                  </form>
+              </li>
         </ul>
       </div>
     </nav>
