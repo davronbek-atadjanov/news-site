@@ -1,8 +1,9 @@
+{% load i18n %}
 {% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-<title>{% block title %}{% endblock title %}</title>
+<title>{% block title %}{% blocktrans%} Bosh sahifa {% endblocktrans %} {% endblock title %}</title>
 
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,8 +36,23 @@
               <li><a href="#">About</a></li>
               <li><a href="{% url 'contact_page' %}">Contact</a></li>
                 {% if request.user.is_authenticated and request.user.is_superuser %}
-                <li><a href="{% url 'admin_page' %}">Admin Sahifasi</a></li>
+                <li><a href="{% url 'admin_page' %}">{% blocktrans %} Admin Sahifasi {% endblocktrans %}</a></li>
                 {% endif %}
+
+                <form action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                    <input name="next" type="hidden" value="{{ redirect_to }}">
+                    <select name="language">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% get_language_info_list for LANGUAGES as languages %}
+                        {% for language in languages %}
+                            <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>
+                                {{ language.name_local }} ({{ language.code }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Go">
+                </form>
 
             </ul>
           </div>
@@ -72,9 +88,9 @@
       <div id="navbar" class="navbar-collapse collapse">
         <ul class="nav navbar-nav main_nav">
           <li class="active"><a href="{% url 'home_page' %}"><span class="fa fa-home desktop-home"></span><span class="mobile-show">Home</span></a></li>
-          <li><a href="{% url 'local_news_page' %}">Mahalliy</a></li>
-          <li> <a href="{% url 'foreign_news_page' %}">Xorij</a></li>
-          <li><a href="{% url 'technology_news_page' %}">Texnologiya</a></li>
+          <li><a href="{% url 'local_news_page' %}">{% blocktrans %} Mahalliy {% endblocktrans %}</a></li>
+          <li> <a href="{% url 'foreign_news_page' %}">{% blocktrans %} Xorij {% endblocktrans %} </a></li>
+          <li><a href="{% url 'technology_news_page' %}">{% blocktrans %} Texnologiya {% endblocktrans %}</a></li>
           <li><a href="{% url 'sport_news_page' %}">Sport</a></li>
           <li><a href="{% url 'contact_page' %}">Biz bilan aloqa</a></li>
 {#          <li><a href="{% url 'page_404' %}">404 Page</a></li>#}
